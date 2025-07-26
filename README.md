@@ -1,1 +1,1 @@
-# go_microservices
+## [Go microservices course on Udemy](https://www.udemy.com/course/working-with-microservices-in-go)
