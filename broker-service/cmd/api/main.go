@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
-	"time"
+	// "time"
 )
 
 const webPort = "80"
@@ -18,9 +18,9 @@ func main() {
 	srv := &http.Server{
 		Addr:         ":" + webPort,
 		Handler:      app.routes(),
-		ReadTimeout:  10 * time.Second,
-		WriteTimeout: 10 * time.Second,
-		IdleTimeout:  120 * time.Second,
+		// ReadTimeout:  10 * time.Second,
+		// WriteTimeout: 10 * time.Second,
+		// IdleTimeout:  120 * time.Second,
 	}
 
 	err := srv.ListenAndServe()

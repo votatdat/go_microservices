@@ -26,6 +26,7 @@ go.work.sum
 
 # env file
 .env
+*.env
 
 # Editor/IDE
 .idea/
@@ -34,3 +35,7 @@ go.work.sum
 
 frontApp
 brokerApp
+authApp
+
+
+db-data
