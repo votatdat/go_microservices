@@ -11,6 +11,17 @@ services:
       mode: replicated
       replicas: 1
 
+  logger-service:
+    build:
+      context: ./../logger-service
+      dockerfile: ./../logger-service/logger-service.dockerfile
+    restart: always
+    deploy:
+      mode: replicated
+      replicas: 1
+    env_file:
+      - ./.mongo.env
+
   authentication-service:
     build:
       context: ./../authentication-service
@@ -35,3 +46,32 @@ services:
       - ./.postgres.env
     volumes:
       - ./db-data/postgres/:/var/lib/postgresql/data/
+
+  mongo:
+    image: 'mongo:4.2.16-bionic'
+    ports:
+      - "27017:27017"
+    deploy:
+      mode: replicated
+      replicas: 1
+    env_file:
+      - ./.mongo.env
+    volumes:
+      - ./db-data/mongo/:/data/db
+    healthcheck:
+      test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  mongo-express:
+    image: mongo-express:latest
+    container_name: mongo-express
+    restart: always
+    ports:
+      - "3001:8081"
+    env_file:
+      - ./.mongo.env
+    depends_on:
+      mongo:
+        condition: service_healthy
