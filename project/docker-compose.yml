@@ -34,6 +34,17 @@ services:
       replicas: 1
     env_file:
       - ./.postgres.env
+  
+  mail-service:
+    build:
+      context: ./../mail-service
+      dockerfile: ./../mail-service/mail-service.dockerfile
+    restart: always
+    deploy:
+      mode: replicated
+      replicas: 1
+    env_file:
+      - ./.mail.env
 
   postgres:
     image: 'postgres:14'
@@ -65,7 +76,7 @@ services:
       retries: 10
 
   mongo-express:
-    image: mongo-express:latest
+    image: 'mongo-express:latest'
     container_name: mongo-express
     restart: always
     ports:
@@ -75,3 +86,12 @@ services:
     depends_on:
       mongo:
         condition: service_healthy
+
+  mailhog:
+    image: 'mailhog/mailhog:latest'
+    container_name: mailhog
+    restart: always
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    
