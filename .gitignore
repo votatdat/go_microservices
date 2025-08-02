@@ -38,5 +38,6 @@ brokerApp
 authApp
 loggerApp
 mailApp
+listenerApp
 
 db-data
