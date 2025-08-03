@@ -2,9 +2,12 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"logger/data"
+	"net"
 	"net/http"
+	"net/rpc"
 	"os"
 	"time"
 
@@ -15,7 +18,7 @@ import (
 const (
 	webPort  = "80"
 	mongoURL = "mongodb://mongo:27017"
-	// rpcPort  = "5001"
+	rpcPort  = "5001"
 	// grpcPort = "50001"
 )
 
@@ -26,12 +29,12 @@ type Config struct {
 }
 
 func main() {
-	// connect to mongoDB
-	mongoCLient, err := connectToMongo()
+	mongoClient, err := connectToMongo()
 	if err != nil {
 		log.Panic(err)
 	}
-	client = mongoCLient
+
+	client = mongoClient
 
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
@@ -46,9 +49,15 @@ func main() {
 		Models: data.New(client),
 	}
 
-	// start the server
-	// go app.serve()
-	log.Println("Starting server on port", webPort)
+	err = rpc.Register(new(RPCServer))
+	if err != nil {
+		log.Panic(err)
+	}
+	go app.rpcListen()
+
+	// start web server
+	log.Println("Starting service on port " + webPort + "...")
+
 	srv := &http.Server{
 		Addr:    ":" + webPort,
 		Handler: app.routes(),
@@ -63,20 +72,22 @@ func main() {
 	}
 }
 
-// func (app *Config) serve() {
-// 	srv := &http.Server{
-// 		Addr:    ":" + webPort,
-// 		Handler: app.routes(),
-// 		// ReadTimeout:  10 * time.Second,
-// 		// WriteTimeout: 10 * time.Second,
-// 		// IdleTimeout:  120 * time.Second,
-// 	}
+func (app *Config) rpcListen() error {
+	log.Println("Starting rpc server on port " + rpcPort + "...")
+	listen, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%s", rpcPort))
+	if err != nil {
+		return err
+	}
+	defer listen.Close()
 
-// 	err := srv.ListenAndServe()
-// 	if err != nil {
-// 		log.Panic(err)
-// 	}
-// }
+	for {
+		rpcConn, err := listen.Accept()
+		if err != nil {
+			continue
+		}
+		go rpc.ServeConn(rpcConn)
+	}
+}
 
 func connectToMongo() (*mongo.Client, error) {
 	// connection options
