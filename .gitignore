@@ -40,4 +40,9 @@ loggerApp
 mailApp
 listenerApp
 
+# Postgres database
 db-data
+
+# Kubernetes setup
+k8s
+ingress
