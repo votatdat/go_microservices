@@ -19,23 +19,23 @@ const webPort = "80"
 var counts int64
 
 type Config struct {
-	DB     *sql.DB
-	Models data.Models
+	Repo   data.Repository
+	Client *http.Client
 }
 
 func main() {
-	log.Printf("Starting Broker Service on port: %s\n", webPort)
+	log.Printf("Starting Authentication Service on port: %s\n", webPort)
 
 	// Initialize database connection
 	conn := connectToDB()
 	if conn == nil {
 		log.Panic("Could not connect to the Postgres database")
 	}
-	defer conn.Close()
 
+	// set up config
 	app := Config{
-		DB:     conn,
-		Models: data.New(conn),
+		Client: &http.Client{},
+		Repo:   data.NewPostgresRepository(conn),
 	}
 
 	srv := &http.Server{
@@ -48,7 +48,7 @@ func main() {
 
 	err := srv.ListenAndServe()
 	if err != nil {
-		log.Fatalf("Error starting server: %v\n", err)
+		log.Panic(err)
 	}
 }
 
@@ -63,7 +63,7 @@ func openDB(dsn string) (*sql.DB, error) {
 		return nil, err
 	}
 
-	return db, err
+	return db, nil
 }
 
 func connectToDB() *sql.DB {
@@ -72,7 +72,7 @@ func connectToDB() *sql.DB {
 	dbName := os.Getenv("POSTGRES_DB")
 
 	dsn := fmt.Sprintf(
-		"host=postgres port=5432 user=%s password=%s dbname=%s sslmode=disable timezone=UTC connect_timeout=5",
+		"host=postgres port=5432 user=%s password=%s dbname=%s sslmode=disable TimeZone=UTC connect_timeout=5",
 		user, pass, dbName,
 	)
 
